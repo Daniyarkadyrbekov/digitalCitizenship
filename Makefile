@@ -14,7 +14,7 @@ build-local: build local
 
 .PHONY: build
 build:
-	go build -o bin/digitalCitizenship.git -v .
+	go build -o bin/digitalCitizenship -v .
 
 .PHONY: local
 local:

@@ -1,1 +1,1 @@
-web: bin/digitalCitizenship.git
+web: bin/digitalCitizenship
