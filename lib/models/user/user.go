@@ -2,20 +2,13 @@ package user
 
 import "errors"
 
-//type User struct {
-//	id          int64
-//	hashedIIN   string
-//	phoneNumber string
-//}
-
 type User struct {
-	ID       int64
-	IINHash  string
+	IIN      string
 	Password string
 }
 
-func (u *User) GetPID() string    { return u.IINHash }
-func (u *User) PutPID(pid string) { u.IINHash = pid }
+func (u *User) GetPID() string    { return u.IIN }
+func (u *User) PutPID(pid string) { u.IIN = pid }
 func (u *User) GetPassword() (password string) {
 	return u.Password
 }

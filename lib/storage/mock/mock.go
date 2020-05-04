@@ -13,8 +13,8 @@ import (
 // Mock stores users in memory
 type Mock struct {
 	users        map[string]user.User
-	interactions map[int64]models.Interactions
-	infectedList []int64
+	interactions map[string]*models.Interactions
+	infectedList []string
 }
 
 // NewMemStorer constructor
@@ -22,20 +22,19 @@ func New() *Mock {
 	return &Mock{
 		users: map[string]user.User{
 			"123456781234": {
-				ID:       1,
-				IINHash:  "123456781234",
+				IIN:      "123456781234",
 				Password: "password",
 			},
 		},
-		interactions: map[int64]models.Interactions{},
-		infectedList: []int64{},
+		interactions: map[string]*models.Interactions{},
+		infectedList: []string{},
 	}
 }
 
 // Save the user
 func (m *Mock) Save(_ context.Context, bossUser authboss.User) error {
 	u := bossUser.(*user.User)
-	m.users[u.IINHash] = *u
+	m.users[u.IIN] = *u
 
 	return nil
 }
@@ -60,41 +59,41 @@ func (m *Mock) New(_ context.Context) authboss.User {
 func (m *Mock) Create(_ context.Context, bossUser authboss.User) error {
 	u := bossUser.(*user.User)
 
-	if _, ok := m.users[u.IINHash]; ok {
+	if _, ok := m.users[u.IIN]; ok {
 		return authboss.ErrUserFound
 	}
 
-	m.users[u.IINHash] = *u
+	m.users[u.IIN] = *u
 	return nil
 }
 
-func (m *Mock) AddInteraction(firstUserID, secondUserID int64, at int64) error {
+func (m *Mock) AddInteraction(firstUserIIN, secondUserIIN string, at int64) error {
 
-	if _, ok := m.interactions[firstUserID]; !ok {
-		m.interactions[firstUserID] = models.NewInteractions()
+	if _, ok := m.interactions[firstUserIIN]; !ok {
+		m.interactions[firstUserIIN] = models.NewInteractions()
 	}
-	m.interactions[firstUserID].Add(secondUserID, at)
+	m.interactions[firstUserIIN].Add(secondUserIIN, at)
 
 	return nil
 }
-func (m *Mock) InteractedWithInfected(firstUserID int64) (bool, error) {
+func (m *Mock) InteractedWithInfected(firstUserIIN string) (bool, error) {
 
-	if _, ok := m.interactions[firstUserID]; !ok {
+	if _, ok := m.interactions[firstUserIIN]; !ok {
 		return false, nil
 	}
 
-	for _, infectedID := range m.infectedList {
-		if m.interactions[firstUserID].Search(infectedID) {
+	for _, infectedIIN := range m.infectedList {
+		if m.interactions[firstUserIIN].Search(infectedIIN) {
 			return true, nil
 		}
 	}
 
 	return false, nil
 }
-func (m *Mock) GetInfectedList() ([]int64, error) {
+func (m *Mock) GetInfectedList() ([]string, error) {
 	return m.infectedList, nil
 }
-func (m *Mock) AddInfected(userID int64) error {
-	m.infectedList = append(m.infectedList, userID)
+func (m *Mock) AddInfected(userIIN string) error {
+	m.infectedList = append(m.infectedList, userIIN)
 	return nil
 }

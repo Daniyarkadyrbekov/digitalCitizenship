@@ -1,23 +1,27 @@
 package models
 
 type interaction struct {
-	userID int64
-	at     int64
+	IIN string
+	at  int64
 }
 
 type Interactions struct {
 	arr []interaction
 }
 
-func NewInteractions() Interactions {
-	return Interactions{}
+func NewInteractions() *Interactions {
+	return &Interactions{}
 }
 
-func (i Interactions) Add(userId int64, at int64) {
-	i.arr = append(i.arr, interaction{userID: userId, at: at})
+func (i *Interactions) Add(IIN string, at int64) {
+	i.arr = append(i.arr, interaction{IIN: IIN, at: at})
 }
 
-func (i Interactions) Search(userId int64) bool {
-	//TODO: add Logic
+func (i *Interactions) Search(IIN string) bool {
+	for _, val := range i.arr {
+		if IIN == val.IIN {
+			return true
+		}
+	}
 	return false
 }

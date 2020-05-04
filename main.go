@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -20,6 +21,10 @@ import (
 	"github.com/volatiletech/authboss/remember"
 	"go.uber.org/zap"
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 func setupAuthBoss(ab *authboss.Authboss, database authboss.CreatingServerStorer) {
 
@@ -113,7 +118,8 @@ func main() {
 
 	mux.Group(func(mux chi.Router) {
 		mux.Use(authboss.Middleware2(ab, authboss.RequireFullAuth, authboss.RespondUnauthorized))
-		mux.MethodFunc("POST", "/blogs/new", stubHandler)
+		mux.MethodFunc("POST", "/interactions/status", interactedWithInfected(database))
+		mux.MethodFunc("POST", "/interactions/new", newInteraction(database))
 	})
 
 	mux.Group(func(mux chi.Router) {
@@ -123,9 +129,11 @@ func main() {
 	mux.Get("/", stubHandler)
 
 	mux.Get("/infected/list", getInfectedList(database))
-	mux.Get("/infected/new", newInfetcted(database))
-	mux.Get("/interactions/status", interactedWithInfected(database))
-	mux.Get("/interactions/new", newInteraction(database))
+	mux.Post("/infected/list", getInfectedList(database))
+	mux.Post("/infected/new", newInfetcted(database))
+
+	//mux.Get("/interactions/status", interactedWithInfected(database))
+	//mux.Get("/interactions/new", newInteraction(database))
 
 	//func newInteraction
 	//func interactedWithInfected

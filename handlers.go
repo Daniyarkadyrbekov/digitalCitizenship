@@ -2,31 +2,77 @@ package main
 
 import (
 	"encoding/json"
-	"math/rand"
+	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/digitalCitizenship/lib/storage/mock"
+	"github.com/volatiletech/authboss"
 )
-
-func init() {
-	rand.Seed(time.Now().Unix())
-}
 
 func stubHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("stubHandler"))
 }
 
+type InteractionReq struct {
+	UserIIN string `json:"IIN"`
+}
+
 func newInteraction(m *mock.Mock) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		m.AddInteraction(rand.Int63(), rand.Int63(), time.Now().Unix())
+		u := r.Context().Value(authboss.CTXKeyUser)
+		user, ok := u.(authboss.User)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("error getting user from context"))
+		}
+		b, err := ioutil.ReadAll(r.Body)
+		defer r.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		var intReq InteractionReq
+		err = json.Unmarshal(b, &intReq)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		if err := m.AddInteraction(user.GetPID(), intReq.UserIIN, time.Now().Unix()); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		w.Header().Set("content-type", "application/json")
 	}
 }
 
 func interactedWithInfected(m *mock.Mock) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		m.InteractedWithInfected(rand.Int63())
+		u := r.Context().Value(authboss.CTXKeyUser)
+		user, ok := u.(authboss.User)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("error getting user from context"))
+		}
+		interacted, err := m.InteractedWithInfected(user.GetPID())
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		data, err := json.Marshal(interacted)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("error marshaling user"))
+		}
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
 	}
+}
+
+type ResponseList struct {
+	List []string `json:"list"`
 }
 
 func getInfectedList(m *mock.Mock) http.HandlerFunc {
@@ -36,7 +82,8 @@ func getInfectedList(m *mock.Mock) http.HandlerFunc {
 			w.WriteHeader(http.StatusInsufficientStorage)
 			return
 		}
-		listByte, err := json.Marshal(list)
+		rl := ResponseList{List: list}
+		listByte, err := json.Marshal(rl)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -47,6 +94,22 @@ func getInfectedList(m *mock.Mock) http.HandlerFunc {
 
 func newInfetcted(m *mock.Mock) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		m.AddInfected(rand.Int63())
+		b, err := ioutil.ReadAll(r.Body)
+		defer r.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		var intReq InteractionReq
+		err = json.Unmarshal(b, &intReq)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		if err := m.AddInfected(intReq.UserIIN); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 	}
 }
