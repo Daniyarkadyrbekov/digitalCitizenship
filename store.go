@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 
 	"github.com/volatiletech/authboss"
 )
@@ -21,9 +22,9 @@ func (u *User) PutPassword(password string) {
 	u.password = password
 }
 
-//func (u *User) Validate() []error {
-////	return []error{errors.New("validate Err custom")}
-////}
+func (u *User) Validate() []error {
+	return []error{errors.New("validate Err custom")}
+}
 
 // MemStorer stores users in memory
 type MemStorer struct {

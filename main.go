@@ -14,6 +14,7 @@ import (
 	"github.com/volatiletech/authboss-clientstate"
 	_ "github.com/volatiletech/authboss/auth"
 	"github.com/volatiletech/authboss/defaults"
+	_ "github.com/volatiletech/authboss/logout"
 	_ "github.com/volatiletech/authboss/register"
 	"github.com/volatiletech/authboss/remember"
 	"go.uber.org/zap"
@@ -28,7 +29,9 @@ var (
 
 func setupAuthboss() {
 	ab.Config.Paths.RootURL = "http://localhost:5000"
-	ab.Config.Modules.LogoutMethod = "GET"
+	ab.Config.Modules.LogoutMethod = "DELETE"
+	//ab.Config.Paths.LogoutOK
+	//ab.Config.Paths.LogoutOK = "/logoutPath"
 
 	// Set up our server, session and cookie storage mechanisms.
 	// These are all from this package since the burden is on the
@@ -203,7 +206,7 @@ func main() {
 
 	// Authed routes
 	mux.Group(func(mux chi.Router) {
-		mux.Use(authboss.Middleware2(ab, authboss.RequireNone, authboss.RespondUnauthorized)) //, lock.Middleware(ab), confirm.Middleware(ab))
+		mux.Use(authboss.Middleware2(ab, authboss.RequireFullAuth, authboss.RespondUnauthorized)) //, lock.Middleware(ab), confirm.Middleware(ab))
 		mux.MethodFunc("GET", "/blogs/new", stubHandler)
 		mux.MethodFunc("GET", "/blogs/{id}/edit", stubHandler)
 		mux.MethodFunc("POST", "/blogs/{id}/edit", stubHandler)
@@ -244,5 +247,5 @@ func main() {
 }
 
 func stubHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("/stubHandler"))
+	w.Write([]byte(r.URL.Host))
 }
