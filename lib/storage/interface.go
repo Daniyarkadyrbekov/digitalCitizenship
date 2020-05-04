@@ -1,7 +1,11 @@
 package storage
 
+import "github.com/volatiletech/authboss"
+
 type Storage interface {
-	AuthSave(userID int64) (AuthInfo, error)
-	AuthRemove(userID int64) (AuthInfo, error)
-	AuthCheck(token string) (int64, error)
+	authboss.CreatingServerStorer
+	AddInteraction(firstUserID, secondUserID int64, at int64) error
+	InteractedWithInfected(userID int64) (bool, error)
+	GetInfectedList() ([]int64, error)
+	AddInfected(userID int64) error
 }

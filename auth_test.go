@@ -30,15 +30,11 @@ func TestLogin(t *testing.T) {
 	if true {
 		//logout Check
 		const newBlogPath = "http://localhost:5000/auth/logout"
-		reqJson := `{}`
-		//ctx := context.WithValue(context.Background(), "cookie", cookie)
-		//req, err := http.NewRequestWithContext(ctx, "GET", newBlogPath, strings.NewReader(reqJson))
-		req, err := http.NewRequest("DELETE", newBlogPath, strings.NewReader(reqJson))
+		req, err := http.NewRequest("DELETE", newBlogPath, nil)
 		require.NoError(t, err)
 		req.AddCookie(cookie)
 		client := http.DefaultClient
 		resp, err := client.Do(req)
-		//resp, err := http.Post(newBlogPath, "application/json", strings.NewReader(reqJson))
 		require.NoError(t, err)
 		respBody, err := ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
@@ -46,50 +42,24 @@ func TestLogin(t *testing.T) {
 			``,
 			string(respBody))
 	}
-	//time.Sleep(5 * time.Second)
 	{
 		//cookie Check
 		const newBlogPath = "http://localhost:5000/blogs/new"
-		reqJson := `{}`
-		//ctx := context.WithValue(context.Background(), "cookie", cookie)
-		//req, err := http.NewRequestWithContext(ctx, "GET", newBlogPath, strings.NewReader(reqJson))
-		req, err := http.NewRequest("GET", newBlogPath, strings.NewReader(reqJson))
+		req, err := http.NewRequest("POST", newBlogPath, nil)
 		require.NoError(t, err)
 		req.AddCookie(cookie)
 		client := http.DefaultClient
 		resp, err := client.Do(req)
-		//resp, err := http.Post(newBlogPath, "application/json", strings.NewReader(reqJson))
 		require.NoError(t, err)
 		respBody, err := ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
+		require.Equal(t, resp.StatusCode, 200)
 		require.Equal(t,
 			``,
 			string(respBody))
 	}
 
 }
-
-//func TestLogout(t *testing.T) {
-//	{
-//		//login Check
-//		const newBlogPath = "http://localhost:5000/blogs/new"
-//		reqJson := `{}`
-//		//ctx := context.WithValue(context.Background(), "cookie", cookie)
-//		//req, err := http.NewRequestWithContext(ctx, "GET", newBlogPath, strings.NewReader(reqJson))
-//		req, err := http.NewRequest("GET", newBlogPath, strings.NewReader(reqJson))
-//		require.NoError(t, err)
-//		req.AddCookie(cookie)
-//		client := http.DefaultClient
-//		resp, err := client.Do(req)
-//		//resp, err := http.Post(newBlogPath, "application/json", strings.NewReader(reqJson))
-//		require.NoError(t, err)
-//		respBody, err := ioutil.ReadAll(resp.Body)
-//		require.NoError(t, err)
-//		require.Equal(t,
-//			`/stubHandler`,
-//			string(respBody))
-//	}
-//}
 
 func TestRegister(t *testing.T) {
 	const registerPath = "http://localhost:5000/auth/register"
