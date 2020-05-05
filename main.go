@@ -59,7 +59,7 @@ func setupAuthBoss(ab *authboss.Authboss, database authboss.CreatingServerStorer
 
 	defaults.SetCore(&ab.Config, true, true)
 
-	emailRule := defaults.Rules{
+	IINRule := defaults.Rules{
 		FieldName: "IIN", Required: true,
 		MinLength: 12, MaxLength: 12,
 		MatchError:      "Must be a valid IIN",
@@ -71,9 +71,9 @@ func setupAuthBoss(ab *authboss.Authboss, database authboss.CreatingServerStorer
 		MatchError:      "Must be a len with > 10",
 		AllowWhitespace: false,
 	}
-	nameRule := defaults.Rules{
-		FieldName: "phone", Required: true,
-		MinLength: 11, MaxLength: 11,
+	macRule := defaults.Rules{
+		FieldName: "mac", Required: true,
+		MinLength:       11,
 		AllowWhitespace: false,
 	}
 
@@ -81,8 +81,10 @@ func setupAuthBoss(ab *authboss.Authboss, database authboss.CreatingServerStorer
 		ReadJSON:    true,
 		UseUsername: true,
 		Rulesets: map[string][]defaults.Rules{
-			"register":    {emailRule, passwordRule, nameRule},
-			"recover_end": {passwordRule},
+			"register": {IINRule, passwordRule, macRule},
+		},
+		Whitelist: map[string][]string{
+			"register": {"mac", "password", "IIN"},
 		},
 	}
 
@@ -96,7 +98,7 @@ func main() {
 	//TODO: logout не работает
 	//TODO: переписать auth service
 
-	cfg := zap.NewDevelopmentConfig()
+	var cfg = zap.NewDevelopmentConfig()
 	cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	l, err := cfg.Build()
 	if err != nil {
@@ -131,6 +133,7 @@ func main() {
 	mux.Get("/infected/list", getInfectedList(database))
 	mux.Post("/infected/list", getInfectedList(database))
 	mux.Post("/infected/new", newInfetcted(database))
+	mux.Get("/users/list", getUsersList(database))
 
 	//mux.Get("/interactions/status", interactedWithInfected(database))
 	//mux.Get("/interactions/new", newInteraction(database))

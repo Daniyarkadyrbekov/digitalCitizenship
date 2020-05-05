@@ -15,7 +15,7 @@ func stubHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type InteractionReq struct {
-	UserIIN string `json:"IIN"`
+	Mac string `json:"mac"`
 }
 
 func newInteraction(m *mock.Mock) http.HandlerFunc {
@@ -38,8 +38,12 @@ func newInteraction(m *mock.Mock) http.HandlerFunc {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-
-		if err := m.AddInteraction(user.GetPID(), intReq.UserIIN, time.Now().Unix()); err != nil {
+		secondUser, err := m.GetUserByMac(intReq.Mac)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		if err := m.AddInteraction(user.GetPID(), secondUser.IIN, time.Now().Unix()); err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
@@ -92,6 +96,10 @@ func getInfectedList(m *mock.Mock) http.HandlerFunc {
 	}
 }
 
+type NewInfectedReq struct {
+	IIN string `json:"IIN"`
+}
+
 func newInfetcted(m *mock.Mock) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		b, err := ioutil.ReadAll(r.Body)
@@ -100,16 +108,32 @@ func newInfetcted(m *mock.Mock) http.HandlerFunc {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-		var intReq InteractionReq
+		var intReq NewInfectedReq
 		err = json.Unmarshal(b, &intReq)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
 
-		if err := m.AddInfected(intReq.UserIIN); err != nil {
+		if err := m.AddInfected(intReq.IIN); err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
+	}
+}
+
+func getUsersList(m *mock.Mock) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		list, err := m.GetUsersList()
+		if err != nil {
+			w.WriteHeader(http.StatusInsufficientStorage)
+			return
+		}
+		listByte, err := json.Marshal(list)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Write(listByte)
 	}
 }

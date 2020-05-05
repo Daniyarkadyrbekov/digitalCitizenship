@@ -1,6 +1,9 @@
 package storage
 
-import "github.com/volatiletech/authboss"
+import (
+	"github.com/digitalCitizenship/lib/models/user"
+	"github.com/volatiletech/authboss"
+)
 
 type Storage interface {
 	authboss.CreatingServerStorer
@@ -8,4 +11,5 @@ type Storage interface {
 	InteractedWithInfected(userID string) (bool, error)
 	GetInfectedList() ([]string, error)
 	AddInfected(userID string) error
+	GetUserByMac(mac string) (user.User, error)
 }

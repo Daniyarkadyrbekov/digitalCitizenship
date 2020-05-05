@@ -4,9 +4,7 @@ import (
 	"context"
 
 	"github.com/digitalCitizenship/lib/models"
-
 	"github.com/digitalCitizenship/lib/models/user"
-
 	"github.com/volatiletech/authboss"
 )
 
@@ -24,6 +22,7 @@ func New() *Mock {
 			"123456781234": {
 				IIN:      "123456781234",
 				Password: "password",
+				Mac:      "testMac",
 			},
 		},
 		interactions: map[string]*models.Interactions{},
@@ -96,4 +95,17 @@ func (m *Mock) GetInfectedList() ([]string, error) {
 func (m *Mock) AddInfected(userIIN string) error {
 	m.infectedList = append(m.infectedList, userIIN)
 	return nil
+}
+
+func (m *Mock) GetUserByMac(mac string) (user.User, error) {
+	for _, v := range m.users {
+		if mac == v.Mac {
+			return v, nil
+		}
+	}
+	return user.User{}, authboss.ErrUserNotFound
+}
+
+func (m *Mock) GetUsersList() (map[string]user.User, error) {
+	return m.users, nil
 }

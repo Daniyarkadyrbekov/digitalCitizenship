@@ -1,10 +1,9 @@
 package user
 
-import "errors"
-
 type User struct {
 	IIN      string
 	Password string
+	Mac      string
 }
 
 func (u *User) GetPID() string    { return u.IIN }
@@ -17,5 +16,17 @@ func (u *User) PutPassword(password string) {
 }
 
 func (u *User) Validate() []error {
-	return []error{errors.New("validate Err custom")}
+	return nil
+}
+
+func (u *User) GetArbitrary() (arbitrary map[string]string) {
+	return map[string]string{
+		"mac": u.Mac,
+	}
+}
+
+func (u *User) PutArbitrary(arbitrary map[string]string) {
+	if n, ok := arbitrary["mac"]; ok {
+		u.Mac = n
+	}
 }
